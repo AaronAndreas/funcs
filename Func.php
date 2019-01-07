@@ -60,6 +60,7 @@ class Func
 		return $firstSign===$validateStr ? true : false;
 	}
 	
+	// Call interface
 	public static function callApi($url,$cookie,$data)
 	{
 		$ch=curl_init();
@@ -77,5 +78,14 @@ class Func
 		$res=curl_exec($ch);
 		curl_close($ch);
 		return $res;
+	}
+	
+	// Get the current number of subtle string format
+	public static function getCurTime()
+	{
+		bcscale(8);
+		$curTimes	=	explode(' ',microtime());
+		$curTime	=	bcadd($curTimes[0],$curTimes[1]);
+		return $curTime;
 	}
 }
