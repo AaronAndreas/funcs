@@ -83,9 +83,100 @@ class Func
 	// Get the current number of subtle string format
 	public static function getCurTime()
 	{
-		bcscale(8);
 		$curTimes	=	explode(' ',microtime());
-		$curTime	=	bcadd($curTimes[0],$curTimes[1]);
+		$curTime	=	bcadd($curTimes[0],$curTimes[1],8);
 		return $curTime;
+	}
+	
+	// Get a readable JSON string
+	public static function formatJson(Array $arr)
+	{
+		// 对数组中每个元素递归进行urlencode操作，保护中文字符  
+		array_walk_recursive($arr, function(&$val)
+		{
+			if($val!==true && $val!==false && $val!==null)
+			{  
+				$val = urlencode($val);  
+			}  
+		});  
+	  
+		// json encode  
+		$data = json_encode($arr);  
+	  
+		// 将urlencode的内容进行urldecode  
+		$data = urldecode($data);  
+	  
+		// 缩进处理  
+		$ret = '';  
+		$pos = 0;  
+		$length = strlen($data);  
+		$indent = isset($indent)? $indent : '    ';  
+		$newline = "\n";  
+		$prevchar = '';  
+		$outofquotes = true;  
+	  
+		for($i=0; $i<=$length; $i++){  
+	  
+			$char = substr($data, $i, 1);  
+	  
+			if($char=='"' && $prevchar!='\\'){  
+				$outofquotes = !$outofquotes;  
+			}elseif(($char=='}' || $char==']') && $outofquotes){  
+				$ret .= $newline;  
+				$pos --;  
+				for($j=0; $j<$pos; $j++){  
+					$ret .= $indent;  
+				}  
+			}  
+	  
+			$ret .= $char;  
+			  
+			if(($char==',' || $char=='{' || $char=='[') && $outofquotes){  
+				$ret .= $newline;  
+				if($char=='{' || $char=='['){  
+					$pos ++;  
+				}  
+	  
+				for($j=0; $j<$pos; $j++){  
+					$ret .= $indent;  
+				}  
+			}  
+	  
+			$prevchar = $char;  
+		}  
+	  
+		return $ret;  
+	}
+	
+	// Get the PHP structure of the array
+	public static function formatPhpArr($arr,$count=0)
+	{
+		$space		=	str_repeat('	',$count);
+		$nextSpace	=	str_repeat('	',$count+1);
+		$str='['.PHP_EOL;
+		
+		foreach($arr as $k=>$v)
+		{
+			if(is_object($v))
+			{
+				throw new \Exception('the node can\'t for the object');
+			}
+			if(is_resource($v))
+			{
+				throw new \Exception('the node can\'t for the resource');
+			}
+			
+			if(is_array($v))
+			{
+				$str.=$nextSpace.'"'.$k.'"=>'.self::formatPhpArr($v,$count+1);
+			}else if(is_string($v)){
+				$str.=$nextSpace.'"'.$k.'"=>"'.$v.'",'.PHP_EOL;
+			}else{
+				$str.=$nextSpace.'"'.$k.'"=>'.$v.','.PHP_EOL;
+			}
+		}
+		$endSymbol	=	$count==0 ? ';' : ',';
+		$str.=$space.']'.$endSymbol.PHP_EOL;
+		return $str;
 	}
 }
