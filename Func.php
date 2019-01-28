@@ -179,4 +179,18 @@ class Func
 		$str.=$space.']'.$endSymbol.PHP_EOL;
 		return $str;
 	}
+	
+	// Recursive tree structure data
+	public static function getTree(Array $arr,$pid=0){
+		$tree=[];
+		foreach($arr as $item)
+		{
+			if($item['pid']===$pid)
+			{
+				$item['nodes']=self::getTree($arr,$item['id']);
+				$tree[]=$item;
+			}
+		}
+		return $tree;
+	}
 }
